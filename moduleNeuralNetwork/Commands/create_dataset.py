@@ -738,7 +738,7 @@ smart_devices_and_commands = [
         "id_command": 2,
         "it_can_exist_without_parameters": False
     },
-    {  # 711\213
+    {  # 711\211
         "id": 71,
         "id_device": 9,
         "id_command": 3,
