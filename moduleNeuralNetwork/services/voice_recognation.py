@@ -1,5 +1,6 @@
 import speech_recognition as sr
 
+
 class VoiceControl:
     def __init__(self):
         self.recognizer = sr.Recognizer()
@@ -18,6 +19,7 @@ class VoiceControl:
                 if self.stop_keyword in text.lower():
                     print("Программа завершена.")
                     break
+                return text
 
             except sr.UnknownValueError as e:
                 print(f"Неизвестная ошибка: {e}")
