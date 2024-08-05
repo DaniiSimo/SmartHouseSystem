@@ -756,51 +756,60 @@ smart_devices_and_commands = [
         "id_command": 1,
         "it_can_exist_without_parameters": True
     }
-]
+]  # Параметры могут быть сложно составными (сочетания двух разных параметров и двух одинаковых) и множественными нужно указывать явные сочетания сложносоставных параметров и простых параметров
 params = [
     {  # 0
-        "name": "Яркость",
+        "name": "Яркость", #Предусмотреть изменения значений с помощью фраз увеличить уменьшить увелиить на половину уменьшить на четверть
+        # Ввести дефолтные значения(Например пользователь говорит уменьши яркость так как нет значения параметра то мы будем использовать предопределённое значение)
         "keywords": ["яркость", "свет", "освещение"],
-        "is_required_name_param": True
+        "is_required_name_param": True,
+        "type": "Number",
+        'is_preprocessing_value': False,
     },
     {  # 1
         "name": "Цвет",
         "keywords": ["окраска", "свет", "освещение", "добавить яркость"],
         "is_required_name_param": False,
-        "type": "String"
-    },
+        "type": "Color",
+        'is_preprocessing_value': True,
+    },#Подумать над параметром дата
     {  # 2
         "name": "Время",
         "keywords": ["период", "момент", "эпоха", "дата", "срок", "век", "эра",
                      "мгновение", "интервал", "отрезок", "таймер"],
         "is_required_name_param": False,
-        "type": "Number"
+        "type": "Time",
+        'is_preprocessing_value': True,
     },
     {  # 3
         "name": "Громкость",
         "keywords": ["громкость", "громкость звука", "громкость сигнала", "уровень звука",
                      "громкость воспроизведения", "звук", "громкость звучания", "громкость музыки", "громкость голоса"],
         "is_required_name_param": True,
-        "type": "Number"
+        "type": "Number",
+        'is_preprocessing_value': False
     },
     {  # 4
         "name": "Плейлист",
         "keywords": ["список воспроизведения", "музыкальный список", "музыкальная подборка",
                      "подборка треков", "сет-лист", "перечень треков", "музыкальная коллекция"],
         "is_required_name_param": True,
-        "type": "String"
+        "type": "String",
+        'is_preprocessing_value': False
     },
     {  # 5
         "name": "Альбом",
         "keywords": ["музыкальный альбом", "диск", "сборник", "пластинка", "релиз", "коллекция треков"],
         "is_required_name_param": True,
-        "type": "String"
+        "type": "String",
+        'is_preprocessing_value': False
     },
     {  # 6
         "name": "Температура",
         "keywords": ["темп", "теплота", "градусы", "степень", "тепло", "холод", "теплота"],
         "is_required_name_param": False,
-        "type": "Number"
+        "type": "Temperature",
+        'is_preprocessing_value': True
     },
     {  # 7
         "name": "Режим",  # для холодильника экономичный режим  режим отпуска режим быстрого замораживания сухой режим
@@ -810,19 +819,22 @@ params = [
         "keywords": ["мод", "режим работы", "режим функционирования",
                      "режим использования", "режим эксплуатации"],
         "is_required_name_param": False,
-        "type": "Enum"
+        "type": "Enum",
+        'is_preprocessing_value': True
     },
     {  # 8
         "name": "Канал",
         "keywords": ["телеканал", "программа", "частота", "станция", "вещательный канал"],
-        "is_required_name_param": True
-        "type": "String"
+        "is_required_name_param": True,
+        "type": "String",
+        'is_preprocessing_value': False
     },
     {  # 9
         "name": "Программа",
         "keywords": ["телепрограмма", "телешоу", "телевизионное шоу", "телепередача", "телевизионный контент"],
         "is_required_name_param": False,
-        "type": "String"
+        "type": "String",
+        'is_preprocessing_value': False
     },
     {  # 10
         # Number
@@ -830,39 +842,58 @@ params = [
         "keywords": ["число оборотов", "частота вращения", "скорость вращения", "оборачиваемость", "оборотистость",
                      "оборот"],
         "is_required_name_param": True,
-        "type": "Number"
+        "type": "Number",
+        'is_preprocessing_value': False
     },
     {  # 11
         "name": "Конфорка",
         "keywords": ["плита", "варочная панель", "варочная поверхность", "кухонная плита", "газовая плита",
                      "электрическая плита"],
         "is_required_name_param": True,
-        "type": "Enum"
+        "type": "Enum",
+        'is_preprocessing_value': True
     },
     {  # 12
         "name": "Направление",
         "keywords": ["курс", "путь", "сторона", "ориентир", "траектория", "вектор", "целеуказание", "указание",
                      "маршрут"],
         "is_required_name_param": False,
-        "type": "Enum"
+        "type": "Direction",
+        'is_preprocessing_value': True
     },
     {  # 13
         "name": "Масштаб",
         "keywords": ["размер", "величина", "уровень", "степень", "мера", "охват", "размах", "пропорция", "диапазон"],
         "is_required_name_param": True,
-        "type": "Number"
+        "type": "Number",
+        'is_preprocessing_value': False
     },
 ]
+# Группы устройств могут выполнять только те команды которые есть во всех устройствах относящихся к этой группе(при условии что после группы нет конкретизации устройства)
+# Прессеты для групп устройств
 type_value_param = [
     {  # 0
-        "type": "Number",#TODO: Нужно научить определять в какую сторону (увечивать или уменьшать)
+        # + - * / % (поддержка сложрных операций)
+        "type": "Number",  # TODO: Нужно научить определять в какую сторону (увечивать или уменьшать) #может возвращать значение или выражение которое изменяет состояние
     },
     {  # 0
         "type": "String",
     },
     {  # 0
-        "type": "Enum",#TODO: Должна быть привязка к устройству
+        "type": "Enum",  # TODO: Должна быть привязка к устройству
     },
+    {
+        'type': 'Time'
+    },
+    {
+        'type': 'Temperature'
+    },
+    {
+        'type': 'Direction'
+    },
+    {
+        'type': 'Color'
+    }
 ]
 value_measurement_param = [
     {
@@ -1084,7 +1115,8 @@ result = {
 for i in range(0, len(devices)):
     local_smart_devices_and_commands = [item for item in smart_devices_and_commands if item["id_device"] == i]
     for local_smart_device_and_command in local_smart_devices_and_commands:
-        print(f'Название устройства - {devices[i]["name"]} Название команды - {commands[local_smart_device_and_command["id_command"]]["command"]} id устройства - {i} id команды {local_smart_device_and_command["id_command"]}\n')
+        print(
+            f'Название устройства - {devices[i]["name"]} Название команды - {commands[local_smart_device_and_command["id_command"]]["command"]} id устройства - {i} id команды {local_smart_device_and_command["id_command"]}\n')
         # local_result = devices[i]["name"] + ", " + commands[local_smart_device_and_command["id_command"]]["command"]
         # local_query = [[f"{command} {device}", f"{device} {command}"]
         #                for command in commands[local_smart_device_and_command["id_command"]]["keywords"] for device in
@@ -1092,7 +1124,6 @@ for i in range(0, len(devices)):
         # local_query = list(set(list(chain.from_iterable(local_query))))
         # for j in range(0, len(local_query)): result["result"].append(local_result)
         # result["query"] += local_query
-
 
 # pd.DataFrame(result).to_csv(Path.cwd().parent / Path("Data/smart_house_commands.csv"), encoding='utf-8',
 #                             index=True, sep=';')
