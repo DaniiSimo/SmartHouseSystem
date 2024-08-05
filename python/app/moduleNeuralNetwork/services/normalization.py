@@ -5,8 +5,10 @@ import spacy
 import re
 import subprocess
 import sys
+from nltk.tokenize import word_tokenize
 
 
+# TODO Посмотреть где очищаются числа и исправить это
 class Normalization:
     """Сервис, выполняющий предобработку текстового запроса пользователя"""
 
@@ -14,10 +16,10 @@ class Normalization:
         """
         Инициализация объекта и проверка установлен ли дамп, если нет установливаем через терминал
         """
-        try:
-            spacy.load('ru_core_news_sm')
-        except OSError as e:
-            subprocess.run([sys.executable, '-m', 'spacy', 'download', 'ru_core_news_sm'], check=True)
+        # try:
+        #     spacy.load('ru_core_news_sm')
+        # except OSError as e:
+        #     subprocess.run([sys.executable, '-m', 'spacy', 'download', 'ru_core_news_sm'], check=True)
 
     def normalize(self, raw_text: str) -> list:
         """
@@ -41,6 +43,9 @@ class Normalization:
             for part_text in parts_text
         ]
 
+    def lemmatization_query(self, raw_text: str) -> str:
+        return self.__lemmatization(self.__tokenization(raw_text))
+
     def __tokenization(self, text: str) -> list:
         """
         Приватный метод токенизации текстового запроса
@@ -50,7 +55,8 @@ class Normalization:
         Returns:
             list: Список токенов
         """
-        return simple_preprocess(text)
+        return word_tokenize(text, language="russian")
+        return simple_preprocess(text, min_len=1)
 
     def __split_text(self, text: str) -> list:
         """
@@ -103,4 +109,6 @@ class Normalization:
         doc = nlp(text)
         return ' '.join([token.text for token in doc if not token.is_stop])
 
-print(Normalization().normalize(raw_text="Включи телек и запустить стиралку"))
+
+# print(Normalization().normalize(
+#     raw_text="включить лампочку и выключить микроволновку а также повернуть настольную лампу на 30° влево"))

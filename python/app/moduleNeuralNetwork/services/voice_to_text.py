@@ -41,3 +41,7 @@ class VoiceControl:
             return "Не удалось распознать текс"
         except sr.RequestError as e:
             return f"Ошибка обращения к сервису; {e}"
+
+
+voice_control = VoiceControl()
+voice_control.start_listening();

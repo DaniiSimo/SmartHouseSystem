@@ -1,13 +1,15 @@
 SpeechRecognition==3.10.0
 PyAudio == 0.2.14
 vosk == 0.3.45
-gensim == 4.3.2
 pymorphy3 == 2.0.2
-scipy == 1.10.1
 pandas == 2.2.2
-numpy == 2.0.0
 nltk == 3.8.1
 scikit-learn == 1.5.1
 tensorflow == 2.16.2
 pymorphy3 == 2.0.2
 spacy==3.7.5
+numpy>=1.19.5,<1.27.0
+gensim>=4.3.2
+scipy>=1.10.1
+fastapi
+uvicorn
