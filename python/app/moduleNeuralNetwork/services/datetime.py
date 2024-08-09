@@ -20,6 +20,8 @@ class DateAndTime:
 
             # Проверка, если parsed_time в прошлом
             if time_seconds < 0:
+
+               
                 # Проверка месяца и добавление месяца, если необходимо
                 if parsed_time.month < now.month or (parsed_time.month == now.month and parsed_time.day < now.day):
                     # Увеличиваем месяц на 1
