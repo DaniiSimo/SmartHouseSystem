@@ -15,16 +15,11 @@ class DateAndTime:
             # Текущее время
             now = datetime.now()
 
-            # Вывод отладочной информации
-            print(f"Текущее время: {now}")
-            print(f"Распознанное время: {parsed_time}")
-
             # Преобразование в секунды
             time_seconds = (parsed_time - now).total_seconds()
 
             # Проверка, если parsed_time в прошлом
             if time_seconds < 0:
-                print("Распознанное время в прошлом или ошибочно в предыдущем месяце, исправляем.")
                 # Проверка месяца и добавление месяца, если необходимо
                 if parsed_time.month < now.month or (parsed_time.month == now.month and parsed_time.day < now.day):
                     # Увеличиваем месяц на 1
@@ -37,11 +32,7 @@ class DateAndTime:
 
                 # Повторное вычисление времени в секундах
                 time_seconds = (parsed_time - now).total_seconds()
-                print(f"Исправленное время: {parsed_time}")
 
             return time_seconds
         else:
             return None
-
-date = DateAndTime()
-date = date.extract_and_convert_time("Завтра")
