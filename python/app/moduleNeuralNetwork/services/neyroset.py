@@ -25,8 +25,10 @@ class Neyroset:
         df = pd.read_csv(file_name, encoding='utf-8')
         return df
 
-    def train_model(self, df: pd.DataFrame, max_seq_length: int, embedding_dim: int, epochs: int,
-                    batch_size: int) -> keras.Model:
+    def train_model(self, df: pd.DataFrame, max_seq_length: int = 20,
+                    embedding_dim: int = 100,
+                    epochs: int = 5,
+                    batch_size: int = 16) -> keras.Model:
         self.tokenizer.fit_on_texts(df['query'])
         sequences = self.tokenizer.texts_to_sequences(df['query'])
         word_index = self.tokenizer.word_index
@@ -68,7 +70,7 @@ class Neyroset:
 
         loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
 
-        print(f"Точность: {accuracy:.2f}")
+        print(f"Accuracy: {accuracy:.2f}")
 
         return model
 
@@ -92,15 +94,15 @@ class Neyroset:
 
         model.load_weights(weight_file)
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-        with open('../Command_handle/tokenizer.pickle', 'rb') as handle:
+        with open('../data/tokenizer.pickle', 'rb') as handle:
             self.tokenizer = pickle.load(handle)
 
-        with open('../Command_handle/label_encoder.pickle', 'rb') as handle:
+        with open('../data/label_encoder.pickle', 'rb') as handle:
             self.label_encoder = pickle.load(handle)
 
         return model
 
-    def predict_label(self, text: str, model: keras.Model, max_seq_length: int, file='../data/predicted_result.json') -> json:
+    def predict_label(self, text: str, model: keras.Model, max_seq_length: int = 20) -> json:
         new_sequence = self.tokenizer.texts_to_sequences([text])
         new_sequence_padded = pad_sequences(new_sequence, maxlen=max_seq_length)
         predicted_result = model.predict(new_sequence_padded)
@@ -115,7 +117,4 @@ class Neyroset:
                 }
         }
 
-        with open(file, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=4)
-
-        return file
+        return result
