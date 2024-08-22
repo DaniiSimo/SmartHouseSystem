@@ -1,5 +1,6 @@
 import sys
 from words2numsrus import NumberExtractor
+import difflib
 
 sys.path.insert(1, '../enums')
 from operator_number import Operator_number
@@ -7,8 +8,10 @@ from operator_number import Operator_number
 sys.path.insert(1, '..')
 from normalization import Normalization
 
+#TODO Ввести дефолтные значения для каждого парметра они разные
 
 class Number:
+    """Сервис, переводящий строковое представление числа в лямбда выражение"""
     __key_words = {
         'нарастить': {
             'на': Operator_number.SUM,
@@ -76,61 +79,124 @@ class Number:
             '': Operator_number.ASSIGN
         },
     }
+    "Ключевые слова для операций"
     __key_words_in_percent = ['процент', '%']
+    "Ключевые слова для процента"
 
     def convert_query(self, text_query: str):
+        """
+        Публичный метод перевода строки в лямбда выражение
+        Args:
+            text_query (str): Необработанный текстовый запрос
+
+        Returns:
+            lambda: Выражение, полученное из строкового запроса
+        """
         service_normalization = Normalization()
         processed_query = service_normalization.lemmatization_query(self.__convert_string_number(text_query))
-        result_operations = []
+        operations = self.__operations_extraction(split_text=processed_query)
+        return self.__generate_lambda_expression(operations=operations)
+
+    def __convert_string_number(self, text: str) -> str:
+        """
+        Приватный метод конвертации строкового представления числа в числовой вид
+        Args:
+            text (str): Необработанный текстовый запрос
+
+        Returns:
+            str: Текстовый запрос с числами
+        """
+        extractor = NumberExtractor()
+        return extractor.replace_groups(text)
+
+    def __operations_extraction(self, split_text: list) -> list:
+        """
+        Приватный метод выделения числовых операций из частей текста
+        Args:
+            split_text (list): Части текстового запроса
+
+        Returns:
+            list: Список операций
+        """
+        operations = []
         local_operation = {}
         local_key_word = None
-        for word in processed_query:
-            if word in Number.__key_words:
-                if local_operation:
-                    if 'operator' in local_operation and 'value' in local_operation:
-                        local_operation['is_percent'] = local_operation['is_percent'] if 'is_percent' in local_operation else False
-                        result_operations.append(local_operation)
-                    local_operation = {}
-                local_key_word = Number.__key_words[word]
-                continue
-
+        for i in range(0, len(split_text)):
+            word = split_text[i]
             word_is_float = word.replace('.', '', 1).isdigit()
 
-            #region Условия для добавления оператора
-            if not word_is_float and word in local_key_word:
-                if 'operator' in local_operation:
-                    if 'value' in local_operation:
-                        local_operation['is_percent'] = local_operation['is_percent'] if 'is_percent' in local_operation else False
-                        result_operations.append(local_operation)
+            if not word_is_float:
+                key_word = self.__check_occurrence_with_percentage(search_word=word, words=Number.__key_words.keys())
+                if key_word:
+                    self.__add_in_operations(operation=local_operation, operations=operations)
                     local_operation = {}
-                local_operation['operator'] = local_key_word[word]
-                continue
-            if '' in local_key_word and 'operator' not in local_operation:
+                    local_key_word = Number.__key_words[key_word]
+                    continue
+
+            # region Условия для добавления оператора
+            if not word_is_float and word in local_key_word:
+                self.__add_in_operations(operation=local_operation, operations=operations)
+                local_operation = {
+                    'operator': local_key_word[word]
+                }
+            if 'operator' not in local_operation and '' in local_key_word:
                 local_operation['operator'] = local_key_word['']
-            #endregion
+            # endregion
 
             # region Условия определения процентное число или нет
-            if (not word_is_float and 'operator' in local_operation
-                    and word in Number.__key_words_in_percent):
+            if (
+                    not word_is_float
+                    and 'operator' in local_operation
+                    and self.__check_occurrence_with_percentage(search_word=word, words=Number.__key_words_in_percent)
+            ):
                 local_operation['is_percent'] = True
-                continue
             # endregion
 
             # region Условия определения значения операции
             if word_is_float and 'operator' in local_operation:
                 local_operation['value'] = word
-                continue
             # endregion
-        return result_operations
 
-    def __convert_string_number(self, text: str) -> str:
-        extractor = NumberExtractor()
-        return extractor.replace_groups(text)
+            if i == len(split_text) - 1:
+                self.__add_in_operations(operation=local_operation, operations=operations)
 
-    def __operations_extraction(self, text: str) -> list:
-        pass
+        return operations
+
+    def __check_occurrence_with_percentage(self, search_word: str, words: list) -> str | bool:
+        """
+        Приватный метод проверки соотвествия в процентном отношении слова
+        Args:
+            search_word (str): Проверяемое слово
+            words (list): Слова
+        Returns:
+            str | bool: В случае если искомое слово совпадает с одним словом из списка на 85 процентов, тогда возвращает оно, иначе False
+        """
+        for word in words:
+            if (difflib.SequenceMatcher(None, search_word, word).ratio() * 100) > 85:
+                return word
+        return False
+
+    def __add_in_operations(self, operation: dict, operations: list) -> None:
+        """
+        Приватный метод добавление операции в список операций
+        Args:
+            operation (dict): Добавляемая операция
+            operations (list): Список операций
+        Returns:
+            None:
+        """
+        if 'operator' in operation and 'value' in operation:
+            operation['is_percent'] = operation['is_percent'] if 'is_percent' in operation else False
+            operations.append(operation)
 
     def __generate_lambda_expression(self, operations: list):
+        """
+        Приватный метод генерации лямбда выражений на основе операций
+        Args:
+            operations (list): Список операций
+        Returns:
+            lambda: Выражение, полученное из списка операций
+        """
         index = -1
         for i, item in enumerate(operations):
             if item['operator'] == Operator_number.ASSIGN and not item['is_percent']:
@@ -159,14 +225,6 @@ class Number:
 
 
 number = Number()
-# func = number.generate_lambda_expression(operations=[
-#     {'operator': Operator_number.SUM, 'value': '50', 'is_percent': True},
-#     {'operator': Operator_number.DIFFERENCE, 'value': '30', 'is_percent': True},
-#     {'operator': Operator_number.DIVIDING, 'value': '5', 'is_percent': False},
-#     {'operator': Operator_number.ASSIGN, 'value': '50', 'is_percent': True},
-# ])
-print(number.convert_query('Прибавь 30 процентов уменьши на сто в двадцать два раза'))
 
-# 'Увеличить' 'на' -> +x 'в' -> *x
-# 'Уменьшить' 'на' -> -x 'в' -> /x
-# 'Поставить' 'на' -> =x
+print(number.convert_query('присвой 80 Прeбавь 20 пожалуйста працентов назначь 30  увеличь на 100')(100))
+
