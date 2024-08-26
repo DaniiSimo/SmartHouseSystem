@@ -16,12 +16,28 @@ import pickle
 
 
 class Neyroset:
+    """
+    Класс для создания нейросети
+
+    Args:
+        tokenizer (tensorflow.tokenizer): токенизирует предложения
+        label_encoder (sklearn.LabelEncoder): преобразует слова в числовой вектор
+    """
 
     def __init__(self):
         self.tokenizer = Tokenizer()
         self.label_encoder = LabelEncoder()
 
     def read_file(self, file_name: str) -> pd.DataFrame:
+        """
+        Читает файл в формате csv
+
+        Args:
+            file_name (str): название файла
+
+        Returns:
+            df: датафрейм пандас
+        """
         df = pd.read_csv(file_name, encoding='utf-8')
         return df
 
@@ -29,6 +45,20 @@ class Neyroset:
                     embedding_dim: int = 100,
                     epochs: int = 5,
                     batch_size: int = 16) -> keras.Model:
+        """
+        Запускает тренировку модели
+
+        Args:
+            df (pd.DataFrame): название датассета на котором будет происходить обучение
+            max_seq_length (int): максимальный размер предложений
+            embedding_dim (int): отвечает за размерность вектора
+            epochs (int): устанавливает количество эпох обучения
+            batch_size (int): задает размер тренировочных экземпляров прежде чем
+                              начнется обратное распространение ошибки
+
+        Returns:
+            model: обученая модель keras
+        """
         self.tokenizer.fit_on_texts(df['query'])
         sequences = self.tokenizer.texts_to_sequences(df['query'])
         word_index = self.tokenizer.word_index
@@ -75,6 +105,15 @@ class Neyroset:
         return model
 
     def save_model(self, model) -> json:
+        """
+        Сохраняет модель, её веса, токенайзер и энкодер
+
+        Args:
+            model (tensorflow.keras): обученная модель
+
+        Returns:
+            сохраненные файлы
+        """
         model_structure = model.to_json()
         with open('../data/lstm_model.json', 'w') as json_file:
             json_file.write(model_structure)
@@ -88,6 +127,16 @@ class Neyroset:
             pickle.dump(self.label_encoder, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_model(self, struct_file: str, weight_file: str) -> keras.Model:
+        """
+        Загружает структуру модели, её веса, токенайзер и энкодер
+
+        Args:
+            struct_file (str): название файла структуры модели
+            weight_file (str): название файла весов модели
+
+        Returns:
+            model: обученая модель keras
+        """
         with open(struct_file, 'r') as f:
             json_string = f.read()
         model = model_from_json(json_string)
@@ -103,6 +152,18 @@ class Neyroset:
         return model
 
     def predict_label(self, text: str, model: keras.Model, max_seq_length: int = 20) -> json:
+        """
+        Предсказание метки класса переданой команды
+
+        Args:
+            text (str): запрос на естественном языке
+            model (keras): обученая модель
+            max_seq_length (int): максимальная длина предложения
+
+
+        Returns:
+            result: результат предсказания в формате json
+        """
         new_sequence = self.tokenizer.texts_to_sequences([text])
         new_sequence_padded = pad_sequences(new_sequence, maxlen=max_seq_length)
         predicted_result = model.predict(new_sequence_padded)
