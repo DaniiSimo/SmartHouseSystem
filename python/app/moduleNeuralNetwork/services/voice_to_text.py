@@ -2,39 +2,72 @@ import speech_recognition as sr
 
 
 class VoiceControl:
-    def __init__(self, stop_keyword: str = "стоп"):
+    """
+       Класс голосового управления, который активируется по ключевой фразе
+       и распознает команды пользователя.
+
+       Args:
+           activation_phrase (str): Ключевая фраза для активации распознавания команды.
+           is_active (bool): Состояние активации распознавания команды (True - активирован, False - неактивен).
+           recognizer (sr.Recognizer): Объект для распознавания речи.
+           microphone (sr.Microphone): Объект микрофона для записи аудио.
+   """
+
+    def __init__(self, activation_phrase):
+        """
+            Инициализая экземпляра класса
+
+            Args:
+                activation_phrase (str): Ключевая фраза для активации.
+        """
+        self.activation_phrase = activation_phrase.lower()
+        self.is_active = False
         self.recognizer = sr.Recognizer()
-        self.stop_keyword = stop_keyword
+        self.microphone = sr.Microphone()
+
+        with self.microphone as source:
+            self.recognizer.adjust_for_ambient_noise(source)
+
+    def callback(self, audio):
+        """
+           Метод обратного вызова, который вызывается при захвате аудио из микрофона.
+           Пытается распознать речь и определить активационную фразу или команду.
+
+           Args:
+                audio (sr.AudioData): Аудио данные, которые нужно распознать.
+
+           Returns:
+                phrase (str): Текст распознанной команды.
+        """
+        try:
+            phrase = self.recognizer.recognize_google(audio, language="ru-RU").lower()
+
+            if not self.is_active and self.activation_phrase in phrase:
+                self.is_active = True
+            elif self.is_active:
+                print(f"Распознана команда: {phrase}")
+                self.is_active = False
+                return phrase
+
+        except sr.UnknownValueError:
+            print("Не удалось распознать фразу.")
+        except sr.RequestError as e:
+            print(f"Ошибка запроса к сервису Google Speech Recognition: {e}")
 
     def start_listening(self):
         """
-        Слушает голосовое сообщение пользователя и возвращает его в текстовом виде
-
-        Returns:
-            text: расшифровка голосового сообщения
+            Запускает фоновое прослушивание микрофона для активации голосового ассистента
+            и распознавания команд. Функция работает в фоне, пока не будет вызвано завершение программы.
         """
-        while True:
-            with sr.Microphone() as source:
-                self.recognizer.adjust_for_ambient_noise(source)
-                print("Я вас слушаю:")
-                audio = self.recognizer.listen(source)
-            try:
-                text = self.recognizer.recognize_google(audio, language="ru-RU")
-                print("Распознано:", text)
+        stop_listening = self.recognizer.listen_in_background(self.microphone, self.callback)
 
-                if self.stop_keyword in text.lower():
-                    print("Программа завершена.")
-                    break
-                return text
-
-            except sr.UnknownValueError as e:
-                print(f"Неизвестная ошибка: {e}")
-                break
-            except sr.RequestError as e:
-                print(f"Ошибка сервиса распознавания: {e}")
-            except sr.WaitTimeoutError as e:
-                print(f"Программа перешла в спящий режим {e}")
-                break
+        try:
+            while True:
+                print("Выполнение других процессов...")
+                time.sleep(5)
+        except KeyboardInterrupt:
+            stop_listening(wait_for_stop=False)
+            print("Программа завершена.")
 
     def recognize_file(self, path):
         """
