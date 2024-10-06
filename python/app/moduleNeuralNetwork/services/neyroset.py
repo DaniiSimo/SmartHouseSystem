@@ -179,3 +179,53 @@ class Neyroset:
         }
 
         return result
+
+    def get_alternative_prediction(self, model, previous_label: str, text: str, max_seq_length: int = 20) -> dict:
+        """
+        Ищет альтернативное предсказание, если предыдущее было неверным, исключая предыдущую метку.
+        """
+        print(f"Исключаем метку: {previous_label}")
+
+        previous_label_idx = np.where(self.label_encoder.classes_ == previous_label)[0]
+
+        new_sequence = self.tokenizer.texts_to_sequences([text])
+        new_sequence_padded = pad_sequences(new_sequence, maxlen=max_seq_length)
+
+        predicted_result = model.predict(new_sequence_padded)
+
+        if previous_label_idx.size > 0:
+            predicted_result[0][previous_label_idx] = 0
+
+        predicted_label = self.label_encoder.inverse_transform(np.argmax(predicted_result, axis=1))[0]
+
+        split_alternative_label = predicted_label.split(',')
+        result = {
+            'input_text': text,
+            'predicted_label': {
+                'device': split_alternative_label[0],
+                'action': split_alternative_label[1]
+            }
+        }
+
+        return result
+
+    def save_new_data(self, text: str, label: str):
+        """
+        Сохраняет новый пример для последующего обучения в формате CSV.
+
+        Args:
+            text (str): команда от пользователя
+            label (str): метка класса для команды
+        """
+        file_path = '../data/false_predictions.csv'
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                pass
+        except FileNotFoundError:
+            with open(file_path, 'w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file, delimiter=';')
+                writer.writerow(['query', 'result'])
+
+        with open(file_path, 'a', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file, delimiter=';')
+            writer.writerow([text.lower(), label])
