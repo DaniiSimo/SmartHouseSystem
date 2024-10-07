@@ -229,3 +229,32 @@ class Neyroset:
         with open(file_path, 'a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file, delimiter=';')
             writer.writerow([text.lower(), label])
+
+    def funi_tune_model(self, new_data_path: str, old_data_path: str, max_seq_length: int = 20,
+                           embedding_dim: int = 100, epochs: int = 5, batch_size: int = 16) -> keras.Model:
+        """
+        Метод для полного обучения модели на объединенных данных (старые + новые), используя существующий метод train_model.
+
+        Args:
+            new_data_path (str): путь к файлу с новыми данными (CSV)
+            old_data_path (str): путь к файлу со старыми данными (CSV)
+            max_seq_length (int): максимальная длина последовательности
+            embedding_dim (int): размер векторных представлений слов
+            epochs (int): количество эпох обучения
+            batch_size (int): размер батча для обучения
+
+        Returns:
+            model: заново обученная модель
+        """
+        # Загружаем новые и старые данные
+        new_data = self.read_file(new_data_path)
+        old_data = self.read_file(old_data_path)
+
+        # Объединяем новые и старые данные
+        combined_data = pd.concat([old_data, new_data], ignore_index=True)
+
+        # Запускаем обучение модели на объединенном наборе данных
+        model = self.train_model(combined_data, max_seq_length=max_seq_length,
+                                 embedding_dim=embedding_dim, epochs=epochs, batch_size=batch_size)
+
+        return model
