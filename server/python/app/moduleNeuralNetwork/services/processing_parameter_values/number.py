@@ -93,11 +93,11 @@ class Number:
             lambda: Выражение, полученное из строкового запроса
         """
         service_normalization = Normalization()
-        processed_query = service_normalization.lemmatization_query(self.__convert_string_number(text_query))
+        processed_query = service_normalization.lemmatization_query(self.convert_string_number(text_query))
         operations = self.__operations_extraction(split_text=processed_query)
         return self.__generate_lambda_expression(operations=operations)
 
-    def __convert_string_number(self, text: str) -> str:
+    def convert_string_number(self, text: str) -> str:
         """
         Приватный метод конвертации строкового представления числа в числовой вид
         Args:
