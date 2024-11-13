@@ -110,5 +110,5 @@ class Normalization:
         return ' '.join([token.text for token in doc if not token.is_stop])
 
 
-# print(Normalization().normalize(
-#     raw_text="включить лампочку и выключить микроволновку а также повернуть настольную лампу на 30° влево"))
+print(Normalization().normalize(
+    raw_text='вперед'))
