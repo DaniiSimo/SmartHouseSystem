@@ -1,18 +1,20 @@
 # Настройки mqtt брокера
 mqtt:
-  host: 192.168.0.230
-  port: 1885
+  host: m8.wqtt.ru
+  port: 18992
+  username: ''
+  password: ''
   keepalive: 20
-  topic: audio/topic
+  topicMicrophone: audio/topic
 # Настройки микрофона
 microphone:
+  #Индекс микрофона
+  deviceIndex: 1
   # Частота
   rate: 16000
   # Чувствительность
   energy: 150
   # Порог паузы
   pause: 0.5
-  # Максимальное время записи в онлайн режиме
-  phraseOnline: 20
-  # Максимальное время записи в офлайн режиме
-  phraseOffline: 1
+  # Максимальное время записи
+  phrase: 20
