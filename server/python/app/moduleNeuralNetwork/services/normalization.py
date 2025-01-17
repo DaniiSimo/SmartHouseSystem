@@ -1,3 +1,4 @@
+import nltk
 from gensim.utils import simple_preprocess
 from pymorphy3 import MorphAnalyzer
 from nltk.tokenize import sent_tokenize
@@ -6,9 +7,9 @@ import re
 import subprocess
 import sys
 from nltk.tokenize import word_tokenize
+# nltk.download('punkt_tab')
 
 
-# TODO Посмотреть где очищаются числа и исправить это
 class Normalization:
     """Сервис, выполняющий предобработку текстового запроса пользователя"""
 
@@ -31,7 +32,7 @@ class Normalization:
             list: Обработанный запрос, разделённый на простые запросы
         """
         text = self.__translation_to_lower_case(text=raw_text)
-        parts_text = self.__split_text(text=text)
+        parts_text = [text]
         return [
             " ".join(
                 self.__lemmatization(tokens=
@@ -111,4 +112,4 @@ class Normalization:
 
 
 print(Normalization().normalize(
-    raw_text='вперед'))
+    raw_text='Увеличь громкость телика в гараже на 2 и понизь яркость лампочки в спальне на 50%'))
