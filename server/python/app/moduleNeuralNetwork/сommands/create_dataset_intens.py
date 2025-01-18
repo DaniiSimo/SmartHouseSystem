@@ -14,7 +14,7 @@ for key in data.keys():
     numeric += [{'Unit': expose['Unit'], 'MinValue': -9999 if expose['MinValue'] is None else expose['MinValue'],
                  'MaxValue': 9999 if expose['MaxValue'] is None else expose['MaxValue']} for expose in
                 data[key]['Exposes'] if expose['Type'] == 'numeric']
-numeric.append({'Unit': '', 'MinValue': -9999, 'MaxValue': 9999})
+numeric.append({'Unit': 'None', 'MinValue': -9999, 'MaxValue': 9999})
 df = pd.DataFrame(numeric)
 df['MinValue'] = pd.to_numeric(df['MinValue'], errors='coerce').fillna(0)
 df['MaxValue'] = pd.to_numeric(df['MaxValue'], errors='coerce').fillna(0)
@@ -42,6 +42,27 @@ for key in data.keys():
                 unit = expose['Unit'] if expose['Unit'] is not None else ''
                 expose['values'] = [f'{min_value}{unit} - {max_value}{unit}']
                 del expose['MinValue'], expose['MaxValue'], expose['Unit']
+            case 'binary':
+                del expose['OnValue'], expose['OffValue']
+                values = expose['ValueEquals']
+                values = re.findall(r'\b[A-Z]+\b', values)
+                expose['values'] = values
+                del expose['ValueEquals']
+            case 'enum':
+                expose['values'] = expose['PossibleValues']
+                del expose['PossibleValues']
+
+            case 'composite':
+                write_values = expose['IsWrite']['ObjectCommands']
+                values = []
+
+                for item in write_values:
+                    for sub_dict in item.values():
+                        if isinstance(sub_dict, dict):
+                            values.extend(sub_dict.keys())
+
+                # Записываем values в expose['values']
+                expose['values'] = values
             case 'light':
                 del expose['NameFeatures']
                 #region Обработка features
