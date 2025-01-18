@@ -29,7 +29,7 @@ numeric = numeric_data.to_dict(orient='index')
 # endregion
 
 for key in data.keys():
-    del data[key]['FileName'], data[key]['Url'], data[key]['Vendor'], data[key]['Model'], data[key]['Description']
+    new_exposes = {}
     for expose in data[key]['Exposes']:
         if not expose['IsRead']['IsEnabled'] and not expose['IsWrite']['IsEnabled']:
             continue
@@ -94,14 +94,19 @@ for key in data.keys():
                                 features[indexFeature]['values'].append({key: "" for key in keys})
                             del features[indexFeature][alternative_values_key]
                     # endregion
-                expose['values'] = features
-                del expose['Features']
+                for feature in features:
+                    new_exposes[feature['Name']] = {
+                        'read': feature['read'],
+                        'write': feature['write'],
+                        'values': feature['values']
+                    }
+                continue
                 #endregion
         #region Обработка read и write
         expose['read'] = expose['IsRead']['IsEnabled']
         expose['write'] = expose['IsWrite']['IsEnabled']
         del expose['IsRead'], expose['IsWrite']
         #endregion
-        data[key][expose['Endpoint']] = expose
-        del expose['Endpoint']
-    del data[key]['Exposes']
+        new_exposes[expose['Endpoint']] = expose
+        del expose['Endpoint'], expose['Type']
+    data[key] = new_exposes
