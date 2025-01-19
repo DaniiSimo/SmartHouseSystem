@@ -53,22 +53,56 @@ for key in data.keys():
                 del expose['PossibleValues']
 
             case 'composite':
-                write_values = expose['IsWrite']['ObjectCommands']
-                values = []
+                another_data = expose.get('AnotherPayloadsValues', [])
 
-                for item in write_values:
-                    for sub_dict in item.values():
-                        if isinstance(sub_dict, dict):
-                            values.extend(sub_dict.keys())
+                result = []
 
-                # Записываем values в expose['values']
-                expose['values'] = values
+                # Обрабатываем данные
+                for item in another_data:
+                    name = item.get('Name')  # Извлекаем ключ 'Name'
+                    item_type = item.get('Type')  # Извлекаем ключ 'Type'
+
+                    if name is None or item_type is None:
+                        print(f"Skipping invalid item: {item}")
+                        continue
+
+                    value = None  # Инициализируем значение
+
+                    # Определяем значение в зависимости от типа
+                    if item_type == 'numeric':
+                        if name == 'strobe_duty_cycle':
+                            value = ['1 - ', '10']
+                        else:
+                            value = ['1 - ', '9999']
+                    elif item_type == 'enum':
+                        if name == 'mode':
+                            value = ['stop', 'burglar', 'fire', 'emergency', 'police_panic', 'fire_panic',
+                                     'emergency_panic']
+                        elif name == 'level':
+                            value = ['low', 'medium', 'high', 'very_high']
+                        elif name == 'strobe_level':
+                            value = ['low', 'medium', 'high', 'very_high']
+                        else:
+                            value = []
+                    elif item_type == 'binary':
+                        if name == 'strobe':
+                            value = ['true', 'false']
+                        else:
+                            value = ['true', 'false']
+
+                    # Добавляем объект в результат
+                    if value is not None:
+                        result.append({'name': name, 'values': value})
+
+                # Обновляем expose['values']
+                expose['values'] = result
+                del expose['AnotherPayloadsValues']
             case 'light':
                 del expose['NameFeatures']
-                #region Обработка features
+                # region Обработка features
                 features = expose['Features']
                 for indexFeature in range(0, len(features)):
-                    #region Обработка чтения, записи и значений внутри записи
+                    # region Обработка чтения, записи и значений внутри записи
                     features[indexFeature]['read'] = features[indexFeature]['IsRead']['IsEnabled']
                     features[indexFeature]['write'] = features[indexFeature]['IsWrite']['IsEnabled']
                     features[indexFeature]['values'] = []
@@ -82,12 +116,14 @@ for key in data.keys():
                             features[indexFeature]['values'].append(objectCommand[features[indexFeature]['Name']])
                     del features[indexFeature]['IsRead']
                     del features[indexFeature]['IsWrite']
-                    #endregion
+                    # endregion
                     # region Обработка числовых данных
-                    numberValue = (str(features[indexFeature]['MinValue']) + ' - ') if features[indexFeature].get('MinValue') is not None else '-9999 - '
+                    numberValue = (str(features[indexFeature]['MinValue']) + ' - ') if features[indexFeature].get(
+                        'MinValue') is not None else '-9999 - '
                     if 'MinValue' in features[indexFeature]:
                         del features[indexFeature]['MinValue']
-                    numberValue += str(features[indexFeature]['MaxValue']) if features[indexFeature].get('MaxValue') is not None else '9999'
+                    numberValue += str(features[indexFeature]['MaxValue']) if features[indexFeature].get(
+                        'MaxValue') is not None else '9999'
                     if 'MaxValue' in features[indexFeature]:
                         del features[indexFeature]['MaxValue']
                     if numberValue != '-9999 - 9999':
@@ -100,11 +136,13 @@ for key in data.keys():
                     # endregion
                     # region Обработка Альтернативных значений
                     alternative_values_keys = ['AlternativelyColors', 'AlternativelyHueOrSaturation']
-                    existing_alternative_values_keys = [key for key in alternative_values_keys if key in features[indexFeature]]
+                    existing_alternative_values_keys = [key for key in alternative_values_keys if
+                                                        key in features[indexFeature]]
                     if len(existing_alternative_values_keys) > 0:
                         for alternative_values_key in existing_alternative_values_keys:
                             for element in features[indexFeature][alternative_values_key]:
-                                pattern = r'^\s*\{\s*"' + features[indexFeature]['Name'] + r'"\s*:\s*\{([^}]*)\}\s*\}\s*$'
+                                pattern = r'^\s*\{\s*"' + features[indexFeature][
+                                    'Name'] + r'"\s*:\s*\{([^}]*)\}\s*\}\s*$'
                                 match = re.match(pattern, element)
                                 if not match:
                                     continue
@@ -122,12 +160,12 @@ for key in data.keys():
                         'values': feature['values']
                     }
                 continue
-                #endregion
-        #region Обработка read и write
+                # endregion
+        # region Обработка read и write
         expose['read'] = expose['IsRead']['IsEnabled']
         expose['write'] = expose['IsWrite']['IsEnabled']
         del expose['IsRead'], expose['IsWrite']
-        #endregion
+        # endregion
         new_exposes[expose['Endpoint']] = expose
         del expose['Endpoint'], expose['Type']
     data[key] = new_exposes
