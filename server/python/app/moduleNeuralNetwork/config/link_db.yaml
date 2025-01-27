@@ -1,0 +1,7 @@
+# Настройки базы данных
+db:
+  host: localhost
+  port: 5432
+  name: db_2
+  user: postgres
+  password: haylavapridi

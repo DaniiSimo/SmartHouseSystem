@@ -71,9 +71,9 @@ for key in data.keys():
                     # Определяем значение в зависимости от типа
                     if item_type == 'numeric':
                         if name == 'strobe_duty_cycle':
-                            value = ['1 - ', '10']
+                            value = ['1 - 10']
                         else:
-                            value = ['1 - ', '9999']
+                            value = ['1 - 9999']
                     elif item_type == 'enum':
                         if name == 'mode':
                             value = ['stop', 'burglar', 'fire', 'emergency', 'police_panic', 'fire_panic',
