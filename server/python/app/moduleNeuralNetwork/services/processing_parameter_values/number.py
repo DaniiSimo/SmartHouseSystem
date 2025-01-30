@@ -1,12 +1,7 @@
-import sys
 from words2numsrus import NumberExtractor
 import difflib
-
-sys.path.insert(1, '../enums')
-from operator_number import Operator_number
-
-sys.path.insert(1, '..')
-from normalization import Normalization
+from server.python.app.moduleNeuralNetwork.services.enums.operator_number import OperatorNumber
+from server.python.app.moduleNeuralNetwork.services.normalization import Normalization
 
 #TODO Ввести дефолтные значения для каждого парметра они разные
 
@@ -14,69 +9,81 @@ class Number:
     """Сервис, переводящий строковое представление числа в лямбда выражение"""
     __key_words = {
         'нарастить': {
-            'на': Operator_number.SUM,
-            'в': Operator_number.MULTIPLICATION
+            'на': OperatorNumber.SUM,
+            'в': OperatorNumber.MULTIPLICATION
         },
         'увеличить': {
-            'на': Operator_number.SUM,
-            'в': Operator_number.MULTIPLICATION
+            'на': OperatorNumber.SUM,
+            'в': OperatorNumber.MULTIPLICATION
+        },
+        'плюс': {
+            '': OperatorNumber.SUM,
         },
         'добавить': {
-            '': Operator_number.SUM,
+            '': OperatorNumber.SUM,
         },
         'прибавить': {
-            '': Operator_number.SUM,
+            '': OperatorNumber.SUM,
         },
         'снизить': {
-            'на': Operator_number.DIFFERENCE,
-            'в': Operator_number.DIVIDING
+            'на': OperatorNumber.DIFFERENCE,
+            'в': OperatorNumber.DIVIDING
         },
         'сократить': {
-            'на': Operator_number.DIFFERENCE,
-            'в': Operator_number.DIVIDING
+            'на': OperatorNumber.DIFFERENCE,
+            'в': OperatorNumber.DIVIDING
         },
         'убавить': {
-            'на': Operator_number.DIFFERENCE,
-            'в': Operator_number.DIVIDING
+            'на': OperatorNumber.DIFFERENCE,
+            'в': OperatorNumber.DIVIDING
+        },
+        'вычесть': {
+            '': OperatorNumber.DIFFERENCE,
         },
         'уменьшить': {
-            'на': Operator_number.DIFFERENCE,
-            'в': Operator_number.DIVIDING
+            'на': OperatorNumber.DIFFERENCE,
+            'в': OperatorNumber.DIVIDING
+        },
+        'умножить': {
+            '': OperatorNumber.MULTIPLICATION
         },
         'перемножить': {
-            '': Operator_number.MULTIPLICATION
+            '': OperatorNumber.MULTIPLICATION
         },
         'помножить': {
-            '': Operator_number.MULTIPLICATION
+            '': OperatorNumber.MULTIPLICATION
         },
         'приумножить': {
-            '': Operator_number.MULTIPLICATION
+            '': OperatorNumber.MULTIPLICATION
         },
         'разделить': {
-            '': Operator_number.DIVIDING
+            '': OperatorNumber.DIVIDING
         },
         'поделить': {
-            '': Operator_number.DIVIDING
+            '': OperatorNumber.DIVIDING
         },
         'расчленить': {
-            '': Operator_number.DIVIDING
+            '': OperatorNumber.DIVIDING
         },
         'поставить': {
-            '': Operator_number.ASSIGN,
-            'на': Operator_number.ASSIGN
+            '': OperatorNumber.ASSIGN,
+            'на': OperatorNumber.ASSIGN
         },
         'назначить': {
-            '': Operator_number.ASSIGN,
-            'на': Operator_number.ASSIGN
+            '': OperatorNumber.ASSIGN,
+            'на': OperatorNumber.ASSIGN
         },
         'присвоить': {
-            '': Operator_number.ASSIGN
+            '': OperatorNumber.ASSIGN
+        },
+        'равно': {
+            '': OperatorNumber.ASSIGN
         },
         'уподобить': {
-            '': Operator_number.ASSIGN
+            '': OperatorNumber.ASSIGN
         },
         'отождествить': {
-            '': Operator_number.ASSIGN
+            '': OperatorNumber.ASSIGN
         },
     }
     "Ключевые слова для операций"
@@ -121,12 +128,13 @@ class Number:
         operations = []
         local_operation = {}
         local_key_word = None
+        key_words = list(self.__key_words.keys())
         for i in range(0, len(split_text)):
             word = split_text[i]
             word_is_float = word.replace('.', '', 1).isdigit()
 
             if not word_is_float:
-                key_word = self.__check_occurrence_with_percentage(search_word=word, words=Number.__key_words.keys())
+                key_word = self.__check_occurrence_with_percentage(search_word=word, words=key_words)
                 if key_word:
                     self.__add_in_operations(operation=local_operation, operations=operations)
                     local_operation = {}
@@ -134,12 +142,12 @@ class Number:
                     continue
 
             # region Условия для добавления оператора
-            if not word_is_float and word in local_key_word:
+            if not word_is_float and local_key_word is not None and word in local_key_word:
                 self.__add_in_operations(operation=local_operation, operations=operations)
                 local_operation = {
                     'operator': local_key_word[word]
                 }
-            if 'operator' not in local_operation and '' in local_key_word:
+            if local_key_word is not None and 'operator' not in local_operation and '' in local_key_word:
                 local_operation['operator'] = local_key_word['']
             # endregion
 
@@ -199,10 +207,9 @@ class Number:
         """
         index = -1
         for i, item in enumerate(operations):
-            if item['operator'] == Operator_number.ASSIGN and not item['is_percent']:
+            if item['operator'] == OperatorNumber.ASSIGN and not item['is_percent']:
                 index = i
 
-        start_value = ''
         if index == -1:
             start_value = 'x'
         else:
@@ -214,9 +221,9 @@ class Number:
             if operation['is_percent']:
                 str_operations = f"({str_operations}) * "
                 match operation['operator']:
-                    case Operator_number.SUM | Operator_number.MULTIPLICATION:
+                    case OperatorNumber.SUM | OperatorNumber.MULTIPLICATION:
                         str_operations += f"{1 + float(operation['value']) / 100}"
-                    case Operator_number.ASSIGN | Operator_number.DIFFERENCE | Operator_number.DIVIDING:
+                    case OperatorNumber.ASSIGN | OperatorNumber.DIFFERENCE | OperatorNumber.DIVIDING:
                         str_operations += f"{float(operation['value']) / 100}"
             else:
                 str_operations += f" {operation['operator'].value} {operation['value']}"
@@ -226,5 +233,5 @@ class Number:
 
 number = Number()
 
-print(number.convert_query('присвой 80 Прeбавь 20 пожалуйста працентов назначь 30  увеличь на 100')(100))
+print(number.convert_query('вычесть 80')(100))
 

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Format_color(Enum):
+class FormatColor(Enum):
     HEX = 1
     RGB = 2
     CMYK = 3

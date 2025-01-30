@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Operator_number(Enum):
+class OperatorNumber(Enum):
     SUM = '+'
     DIFFERENCE = '-'
     ASSIGN = '='

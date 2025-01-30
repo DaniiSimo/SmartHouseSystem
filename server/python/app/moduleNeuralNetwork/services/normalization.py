@@ -22,7 +22,7 @@ class Normalization:
         # except OSError as e:
         #     subprocess.run([sys.executable, '-m', 'spacy', 'download', 'ru_core_news_sm'], check=True)
 
-    def normalize(self, raw_text: str) -> list:
+    def normalize(self, raw_text: str) -> str:
         """
         Публичный метод нормализации текстового запроса
         Args:
@@ -32,17 +32,13 @@ class Normalization:
             list: Обработанный запрос, разделённый на простые запросы
         """
         text = self.__translation_to_lower_case(text=raw_text)
-        parts_text = [text]
-        return [
-            " ".join(
+        return " ".join(
                 self.__lemmatization(tokens=
                                      self.__tokenization(text=
-                                                         self.__clean_text(text=part_text)
+                                                         self.__clean_text(text=text)
                                                          )
                                      )
             )
-            for part_text in parts_text
-        ]
 
     def lemmatization_query(self, raw_text: str) -> str:
         return self.__lemmatization(self.__tokenization(raw_text))
@@ -112,4 +108,4 @@ class Normalization:
 
 
 print(Normalization().normalize(
-    raw_text='Увеличь громкость телика в гараже на 2 и понизь яркость лампочки в спальне на 50%'))
+    raw_text='Увеличь громкость телика в гараже на 2. и понизь яркость лампочки в спальне на 50%'))

@@ -1,5 +1,6 @@
+from _datetime import datetime, timedelta
 import dateparser
-from python.app.moduleNeuralNetwork.services.processing_parameter_values.datetime import datetime, timedelta
+
 
 
 class DateAndTime:
@@ -30,11 +31,11 @@ class DateAndTime:
                     year_increment = parsed_time.month // 12
                     parsed_time = parsed_time.replace(month=next_month, year=parsed_time.year + year_increment)
                 else:
-
                     parsed_time += timedelta(weeks=1)
-
                 time_seconds = (parsed_time - now).total_seconds()
-
             return time_seconds
         else:
             return None
+
+service = DateAndTime()
+print(service.extract_and_convert_time("Сегодня в 19:11"))

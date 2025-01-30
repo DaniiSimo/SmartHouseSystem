@@ -3,19 +3,18 @@ import os
 import json
 import difflib
 
-sys.path.insert(1, '../enums')
-from format_color import Format_color
+from server.python.app.moduleNeuralNetwork.services.enums.format_color import FormatColor
 
 
 class Color:
     """Сервис, переводящий строковое представление цвета в форматы RGB HEX CMYK HSV"""
 
-    def parse(self, value: str, result_format: Format_color) -> str:
+    def parse(self, value: str, result_format: FormatColor) -> str:
         """
         Публичный метод парсинга строкового значения цвета
         Args:
             value (str): Строковое название цвета
-            result_format (Format_color): Формат в который надо перевести значение цвета
+            result_format (FormatColor): Формат в который надо перевести значение цвета
 
         Returns:
             str: Преобразованный цвет
@@ -43,15 +42,16 @@ class Color:
                     if similarity > 60.0 and similarity > like:
                         like = similarity
                         code = code_
-        print(code)
+        if code is None:
+            return ''
         return self.__convert_color(int(code, 16), result_format)
 
-    def __convert_color(self, value: int, result_format: Format_color, raw: bool = False) -> str:
+    def __convert_color(self, value: int, result_format: FormatColor, raw: bool = False) -> str:
         """
         Приватный метод преобразования числового значения 16-ой системы счисления в указанный формат
         Args:
             value (int): Числовое значение цвета в 16-ой системе счисления
-            result_format (Format_color): Формат в который надо перевести значение цвета
+            result_format (FormatColor): Формат в который надо перевести значение цвета
             raw: bool: Возврат значения в виде строки или массива значений
 
         Returns:
@@ -60,20 +60,20 @@ class Color:
         result = None
 
         if value is None:
-            if result_format == Format_color.RGB:
+            if result_format == FormatColor.RGB:
                 result = 'rgb(0,0,0)'
-            elif result_format == Format_color.HEX:
+            elif result_format == FormatColor.HEX:
                 result = '#000000'
-            elif result_format == Format_color.CMYK:
+            elif result_format == FormatColor.CMYK:
                 result = 'cmyk(0,0,0,0)'
-            elif result_format == Format_color.HSV:
+            elif result_format == FormatColor.HSV:
                 result = 'hsv(0,0,0)'
             return result
 
         pattern = None
 
         if value is not None:
-            if result_format == Format_color.RGB:
+            if result_format == FormatColor.RGB:
                 result = [
                     (value >> 16) & 0xFF,
                     (value >> 8) & 0xFF,
@@ -81,10 +81,10 @@ class Color:
                 ]
                 pattern = 'rgb({},{},{})'
 
-            elif result_format == Format_color.HEX:
+            elif result_format == FormatColor.HEX:
                 result = '#{:06X}'.format(value)
 
-            elif result_format == Format_color.CMYK:
+            elif result_format == FormatColor.CMYK:
                 r = (value >> 16) & 0xFF
                 g = (value >> 8) & 0xFF
                 b = value & 0xFF
@@ -98,7 +98,7 @@ class Color:
                 pattern = 'cmyk({:.2f},{:.2f},{:.2f},{:.2f})'
                 result = [cyan, magenta, yellow, black]
 
-            elif result_format == Format_color.HSV:
+            elif result_format == FormatColor.HSV:
                 r = (value >> 16) & 0xFF
                 g = (value >> 8) & 0xFF
                 b = value & 0xFF
@@ -134,4 +134,4 @@ class Color:
 
 
 serviceColor = Color()
-print(serviceColor.parse('Красный', Format_color.HEX))
+print(serviceColor.parse('Красный', FormatColor.HEX))
