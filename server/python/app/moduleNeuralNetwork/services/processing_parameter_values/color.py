@@ -2,12 +2,24 @@ import sys
 import os
 import json
 import difflib
+from server.python.app.moduleNeuralNetwork.services.reader import Reader
 
 from server.python.app.moduleNeuralNetwork.services.enums.format_color import FormatColor
 
 
 class Color:
     """Сервис, переводящий строковое представление цвета в форматы RGB HEX CMYK HSV"""
+
+    def __init__(self):
+        self.__colors = None
+        PATH_DATASET_COLOR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data',
+                                          'data_parse_color_ru.json')
+        if os.path.exists(PATH_DATASET_COLOR):
+            self.__colors = Reader.read_json(PATH_DATASET_COLOR)
+
+    def get_colors(self):
+        return [item.lower() for color in self.__colors.values()
+                for item in (color if isinstance(color, list) else [color])]
 
     def parse(self, value: str, result_format: FormatColor) -> str:
         """
@@ -19,20 +31,15 @@ class Color:
         Returns:
             str: Преобразованный цвет
         """
+        if self.__colors is None:
+            return ''
+
         like = 0
         code = None
         name = value.lower().strip()
 
-        path_colors = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data',
-                                   'data_parse_color_ru.json')
-        colors = {}
-
-        if os.path.exists(path_colors):
-            with open(path_colors, 'r', encoding='utf-8') as file:
-                colors = json.load(file)
-
-        if colors and name:
-            for code_, code_name in colors.items():
+        if self.__colors and name:
+            for code_, code_name in self.__colors.items():
                 if type(code_name) is str:
                     code_name = [code_name]
 
@@ -132,6 +139,5 @@ class Color:
 
             return result
 
-
-serviceColor = Color()
-print(serviceColor.parse('Красный', FormatColor.HEX))
+# serviceColor = Color()
+# print(serviceColor.parse('Красный', FormatColor.HEX))

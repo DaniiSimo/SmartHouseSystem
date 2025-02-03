@@ -120,14 +120,31 @@ class DB:
                 operator_compare = filter_data.get('operator_compare', '=')
                 operator_condition = filter_data.get('operator_condition', '').upper()
 
-                condition_expr = sql.Composed([
-                    sql.Identifier(col),
-                    sql.SQL(f" {operator_compare} "),
-                    sql.Placeholder(col)
-                ])
-                conditions_parts.append(condition_expr)
+                if operator_compare in ('IN', 'NOT IN'):
+                    if not isinstance(val, (list, tuple)):
+                        continue
 
-                params[col] = val
+                    placeholders = []
+                    for i, v in enumerate(val):
+                        placeholder_name = f"{col}_{i}"
+                        placeholders.append(sql.Placeholder(placeholder_name))
+                        params[placeholder_name] = v
+
+                    condition_expr = sql.Composed([
+                        sql.Identifier(col),
+                        sql.SQL(f" {operator_compare} ("),
+                        sql.SQL(', ').join(placeholders),
+                        sql.SQL(')')
+                    ])
+                else:
+                    condition_expr = sql.Composed([
+                        sql.Identifier(col),
+                        sql.SQL(f" {operator_compare} "),
+                        sql.Placeholder(col)
+                    ])
+                    params[col] = val
+
+                conditions_parts.append(condition_expr)
 
                 if operator_condition:
                     op_cond_expr = sql.SQL(f" {operator_condition} ")

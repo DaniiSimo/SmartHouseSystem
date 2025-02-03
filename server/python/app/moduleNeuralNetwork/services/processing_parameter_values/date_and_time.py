@@ -37,5 +37,5 @@ class DateAndTime:
         else:
             return None
 
-service = DateAndTime()
-print(service.extract_and_convert_time("Сегодня в 19:11"))
+# service = DateAndTime()
+# print(service.extract_and_convert_time("Сегодня в 19:11"))

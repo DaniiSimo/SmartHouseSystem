@@ -1,12 +1,9 @@
 from pathlib import Path
 import yaml
-import sys
 import json
-
-sys.path.insert(1, '../services')
-from db import DB
-from generator_password import GeneratorPassword
-from client_mqtt import ClientMqtt
+from server.python.app.moduleNeuralNetwork.services.db import DB
+from server.python.app.moduleNeuralNetwork.services.generator_password import GeneratorPassword
+from server.python.app.moduleNeuralNetwork.services.client_mqtt import ClientMqtt
 
 
 class Base:
@@ -16,7 +13,8 @@ class Base:
     def __init__(self, name_network: str, subscribers_topics: list):
         self._client_db = self.__init_client_db()
         self._data_network = self.__init_network(name_network=name_network)
-        self._client_mqtt = self.__init_client_mqtt(subscribers_topics=subscribers_topics)
+        self.__data_mqtt = self.__get_data_mqtt()
+        self._client_mqtt = self._create_client_mqtt(subscribers_topics=subscribers_topics)
 
     def __init_client_db(self) -> DB:
         with open(self.__PATH_TO_CONFIG, 'r', encoding='utf-8') as file:
@@ -43,7 +41,7 @@ class Base:
 
         return data_network[0]
 
-    def __init_client_mqtt(self, subscribers_topics: list) -> ClientMqtt:
+    def __get_data_mqtt(self) -> dict:
         data_mqtt = self._client_db.get_data(table_name='mqtt_broker', filters={
             'id': {
                 'value': self._data_network['mqtt_broker_id'],
@@ -53,7 +51,7 @@ class Base:
         })
 
         if len(data_mqtt) == 0:
-            raise Exception("No setting mqtt found")
+            return {}
 
         data_mqtt = data_mqtt[0]
         # region Расшифровка пароля mqtt
@@ -62,15 +60,18 @@ class Base:
 
         data_mqtt['password'] = GeneratorPassword.decrypt(secret_key=key, hash_password=data_mqtt["hash_password"])
         del key
+        return data_mqtt
 
+    def _create_client_mqtt(self, subscribers_topics: list = []) -> ClientMqtt:
         client_mqtt = ClientMqtt(
-            host=data_mqtt['host'],
-            port=data_mqtt['port'],
-            username=data_mqtt['username'],
-            password=data_mqtt['password'],
+            host=self.__data_mqtt['host'],
+            port=self.__data_mqtt['port'],
+            username=self.__data_mqtt['username'],
+            password=self.__data_mqtt['password'],
             callback=self.listen)
 
-        client_mqtt.subscribe(subscribers_topics)
+        if subscribers_topics:
+            client_mqtt.subscribe(subscribers_topics)
 
         return client_mqtt
 

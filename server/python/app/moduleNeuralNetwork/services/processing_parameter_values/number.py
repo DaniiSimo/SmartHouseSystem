@@ -85,6 +85,9 @@ class Number:
         'отождествить': {
             '': OperatorNumber.ASSIGN
         },
+        'изменить': {
+            'на': OperatorNumber.ASSIGN
+        }
     }
     "Ключевые слова для операций"
     __key_words_in_percent = ['процент', '%']
@@ -231,7 +234,7 @@ class Number:
         return eval(f"lambda x: {str_operations}")
 
 
-number = Number()
-
-print(number.convert_query('вычесть 80')(100))
+# number = Number()
+#
+# print(number.convert_query('вычесть 80')(100))
 

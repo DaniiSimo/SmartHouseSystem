@@ -1,4 +1,3 @@
-import nltk
 from gensim.utils import simple_preprocess
 from pymorphy3 import MorphAnalyzer
 from nltk.tokenize import sent_tokenize
@@ -7,7 +6,6 @@ import re
 import subprocess
 import sys
 from nltk.tokenize import word_tokenize
-# nltk.download('punkt_tab')
 
 
 class Normalization:
@@ -19,6 +17,7 @@ class Normalization:
         """
         # try:
         #     spacy.load('ru_core_news_sm')
+        #     nltk.download('punkt_tab')
         # except OSError as e:
         #     subprocess.run([sys.executable, '-m', 'spacy', 'download', 'ru_core_news_sm'], check=True)
 
@@ -33,15 +32,15 @@ class Normalization:
         """
         text = self.__translation_to_lower_case(text=raw_text)
         return " ".join(
-                self.__lemmatization(tokens=
+                self.lemmatization(tokens=
                                      self.__tokenization(text=
                                                          self.__clean_text(text=text)
                                                          )
                                      )
             )
 
-    def lemmatization_query(self, raw_text: str) -> str:
-        return self.__lemmatization(self.__tokenization(raw_text))
+    def lemmatization_query(self, raw_text: str) -> list:
+        return self.lemmatization(self.__tokenization(raw_text))
 
     def __tokenization(self, text: str) -> list:
         """
@@ -70,7 +69,7 @@ class Normalization:
             result += [part.strip() for part in re.split(pattern_split_text, sentence) if part.strip()]
         return result
 
-    def __lemmatization(self, tokens: list) -> list:
+    def lemmatization(self, tokens: list) -> list:
         """
         Леммитизация токенов
         Args:
@@ -80,6 +79,8 @@ class Normalization:
             list: Список леммитизированных токенов
         """
         lemmatizer = MorphAnalyzer()
+        k = [lemmatizer.normal_forms(token)[0] for token in tokens]
+        l = [lemmatizer.parse(token)[0].normal_form for token in tokens]
         return [lemmatizer.normal_forms(token)[0] for token in tokens]
 
     def __translation_to_lower_case(self, text: str) -> str:
@@ -107,5 +108,5 @@ class Normalization:
         return ' '.join([token.text for token in doc if not token.is_stop])
 
 
-print(Normalization().normalize(
-    raw_text='Увеличь громкость телика в гараже на 2. и понизь яркость лампочки в спальне на 50%'))
+# print(Normalization().normalize(
+#     raw_text='Увеличь громкость телика в гараже на 2. и понизь яркость лампочки в спальне на 50%'))

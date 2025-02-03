@@ -41,7 +41,7 @@ def validate_parameter_values(parameter_values):
 
 
 PATH_TO_DATA = Path(__file__).parent.parent.joinpath("data")
-# region Преобразование short commands
+# region Подготовка данных о short commands
 PATH_TO_DATA_SHORT_COMMAND = str(PATH_TO_DATA.joinpath("short_command.csv"))
 data_short_command = Reader.read_csv(PATH_TO_DATA_SHORT_COMMAND)
 rule_short_command = []
@@ -50,14 +50,18 @@ for element in data_short_command:
 rule_short_command = list(set(rule_short_command))
 # endregion
 
-# region Преобразование device
+# region Подготовка данных о device
 PATH_TO_DATA_CLUSTERS_DEVICE = str(PATH_TO_DATA.joinpath("clusters_device.json"))
 data_clusters_device = Reader.read_json(PATH_TO_DATA_CLUSTERS_DEVICE)
 rule_device = []
 for element in data_clusters_device:
     rule_device += element['synonyms']
 rule_device = list(set(rule_device))
+rule_device.append('включить')
 # endregion
+
+#region Подготовка данных о группах
+#endregion
 
 # Инициализация GigaChat
 # chat = GigaChat(

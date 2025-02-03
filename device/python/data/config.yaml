@@ -2,8 +2,8 @@
 mqtt:
   host: m8.wqtt.ru
   port: 18992
-  username: ''
-  password: ''
+  username: 'u_HHKIB8'
+  password: '40g3qvlr'
   keepalive: 20
   topicMicrophone: audio/topic
 # Настройки микрофона
